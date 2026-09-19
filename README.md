@@ -7,4 +7,4 @@
 🚀 線上體驗
 点击以下网址能直接跳转到网页，如果觉得好用的话请点个star
 https://ncre-level3-db.vercel.app/
-
+连不上选择这个网址：https://ncre-level3-db-note.pages.dev/
