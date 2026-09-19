@@ -120,19 +120,20 @@ const CodeBlock = ({
   }
 
   return (
-    <div className="relative group my-4 rounded-lg overflow-hidden border border-slate-700 bg-slate-900 text-slate-100">
-      <div className="flex items-center justify-between px-4 py-1.5 bg-slate-800/80 border-b border-slate-700 text-xs text-slate-400 font-mono">
-        <span>{className?.replace('language-', '').toUpperCase() || 'CODE'}</span>
+    <div className="relative group my-3 sm:my-4 rounded-xl overflow-hidden border border-slate-700 bg-slate-900 text-slate-100 max-w-full">
+      <div className="flex items-center justify-between px-3 sm:px-4 py-2 bg-slate-800/90 border-b border-slate-700 text-xs text-slate-400 font-mono">
+        <span className="font-semibold text-[11px] sm:text-xs">{className?.replace('language-', '').toUpperCase() || 'CODE'}</span>
         <button
+          type="button"
           onClick={handleCopy}
-          className="flex items-center gap-1 text-slate-300 hover:text-white px-2 py-0.5 rounded hover:bg-slate-700 transition cursor-pointer"
+          className="flex items-center gap-1.5 text-slate-300 hover:text-white px-2.5 py-1 rounded-md hover:bg-slate-700 active:bg-slate-600 transition cursor-pointer min-h-[32px]"
           title="复制到剪贴板"
         >
           {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
           <span>{copied ? '已复制' : '复制代码'}</span>
         </button>
       </div>
-      <pre className="p-4 overflow-x-auto text-sm font-mono leading-relaxed text-slate-100">
+      <pre className="p-3 sm:p-4 overflow-x-auto text-xs sm:text-sm font-mono leading-relaxed text-slate-100 max-w-full">
         <code>{highlightSearchMatch(children, searchQuery, isHighlighted)}</code>
       </pre>
     </div>
@@ -155,48 +156,48 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
         remarkPlugins={[remarkGfm]}
         components={{
           h3: ({ children }) => (
-            <h3 className="text-lg font-bold text-slate-900 mt-6 mb-3 flex items-center gap-2 border-b border-slate-200 pb-2">
+            <h3 className="text-base sm:text-lg font-bold text-slate-900 mt-5 sm:mt-6 mb-2.5 sm:mb-3 flex items-center gap-2 border-b border-slate-200 pb-2">
               {highlightSearchMatch(children, searchQuery, isHighlighted)}
             </h3>
           ),
           h4: ({ children }) => (
-            <h4 className="text-base font-semibold text-slate-800 mt-4 mb-2">
+            <h4 className="text-sm sm:text-base font-semibold text-slate-800 mt-3.5 sm:mt-4 mb-2">
               {highlightSearchMatch(children, searchQuery, isHighlighted)}
             </h4>
           ),
           p: ({ children }) => (
-            <p className="my-2.5 text-[15px] leading-relaxed">
+            <p className="my-2 sm:my-2.5 text-sm sm:text-[15px] leading-relaxed break-words">
               {highlightSearchMatch(children, searchQuery, isHighlighted)}
             </p>
           ),
           ul: ({ children }) => (
-            <ul className="list-disc pl-5 my-3 space-y-1.5 text-[15px]">
+            <ul className="list-disc pl-4 sm:pl-5 my-2.5 sm:my-3 space-y-1.5 text-sm sm:text-[15px]">
               {children}
             </ul>
           ),
           ol: ({ children }) => (
-            <ol className="list-decimal pl-5 my-3 space-y-1.5 text-[15px]">
+            <ol className="list-decimal pl-4 sm:pl-5 my-2.5 sm:my-3 space-y-1.5 text-sm sm:text-[15px]">
               {children}
             </ol>
           ),
           li: ({ children }) => (
-            <li className="leading-relaxed">
+            <li className="leading-relaxed break-words">
               {highlightSearchMatch(children, searchQuery, isHighlighted)}
             </li>
           ),
           strong: ({ children }) => (
-            <strong className="font-semibold text-slate-900 bg-amber-50 px-1 py-0.5 rounded border border-amber-200/60">
+            <strong className="font-semibold text-slate-900 bg-amber-50 px-1 py-0.5 rounded border border-amber-200/60 break-words">
               {highlightSearchMatch(children, searchQuery, isHighlighted)}
             </strong>
           ),
           blockquote: ({ children }) => (
-            <blockquote className="border-l-4 border-blue-500 bg-blue-50/70 px-4 py-2 my-3 rounded-r-lg text-slate-700 text-sm">
+            <blockquote className="border-l-3 sm:border-l-4 border-blue-500 bg-blue-50/70 px-3 sm:px-4 py-2 my-2.5 sm:my-3 rounded-r-lg text-slate-700 text-xs sm:text-sm">
               {highlightSearchMatch(children, searchQuery, isHighlighted)}
             </blockquote>
           ),
           table: ({ children }) => (
-            <div className="overflow-x-auto my-4 rounded-lg border border-slate-200 shadow-xs">
-              <table className="min-w-full divide-y divide-slate-200 text-sm">
+            <div className="overflow-x-auto my-3 sm:my-4 rounded-xl border border-slate-200 shadow-2xs max-w-full -webkit-overflow-scrolling-touch">
+              <table className="min-w-full divide-y divide-slate-200 text-xs sm:text-sm">
                 {children}
               </table>
             </div>
@@ -217,12 +218,12 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
             </tr>
           ),
           th: ({ children }) => (
-            <th className="px-3.5 py-2.5 text-left font-semibold text-slate-900 tracking-tight whitespace-nowrap">
+            <th className="px-2.5 sm:px-3.5 py-2 sm:py-2.5 text-left font-semibold text-slate-900 tracking-tight whitespace-nowrap bg-slate-100/90">
               {highlightSearchMatch(children, searchQuery, isHighlighted)}
             </th>
           ),
           td: ({ children }) => (
-            <td className="px-3.5 py-2.5 text-slate-700 align-top">
+            <td className="px-2.5 sm:px-3.5 py-2 sm:py-2.5 text-slate-700 align-top break-words">
               {highlightSearchMatch(children, searchQuery, isHighlighted)}
             </td>
           ),

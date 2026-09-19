@@ -49,7 +49,11 @@ export default function App() {
         topic={selectedTopic}
         jumpTarget={jumpTarget}
         searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
         onOpenSidebar={() => setIsSidebarOpen(true)}
+        onOpenSidebarWithSearch={() => {
+          setIsSidebarOpen(true);
+        }}
       />
     </div>
   );

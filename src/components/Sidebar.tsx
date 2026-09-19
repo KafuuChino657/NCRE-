@@ -88,26 +88,28 @@ export const Sidebar: React.FC<SidebarProps> = ({
         />
       )}
       
-      {/* Sidebar */}
+      {/* Sidebar Drawer */}
       <aside className={`
-        fixed top-0 left-0 z-50 h-screen w-80 bg-slate-50/95 backdrop-blur-md border-r border-slate-200 
-        transition-transform duration-300 ease-in-out lg:translate-x-0 flex flex-col
-        ${isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}
+        fixed top-0 left-0 z-50 h-screen w-[85vw] max-w-xs md:w-72 lg:w-80 bg-slate-50/98 backdrop-blur-md border-r border-slate-200 
+        transition-transform duration-300 ease-in-out lg:translate-x-0 flex flex-col shadow-xl lg:shadow-none
+        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         {/* Header */}
-        <div className="h-16 flex items-center justify-between px-5 border-b border-slate-200 bg-white shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-xs">
+        <div className="h-14 sm:h-16 flex items-center justify-between px-4 sm:px-5 border-b border-slate-200 bg-white shrink-0">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-xs shrink-0">
               <BookOpen className="w-4 h-4" />
             </div>
-            <div>
-              <h1 className="text-sm font-bold text-slate-900 leading-tight">三级数据库复习宝典</h1>
-              <p className="text-[11px] text-slate-500 font-medium">全国计算机等级考试（NCRE）</p>
+            <div className="min-w-0">
+              <h1 className="text-xs sm:text-sm font-bold text-slate-900 leading-tight truncate">三级数据库复习宝典</h1>
+              <p className="text-[10px] sm:text-[11px] text-slate-500 font-medium truncate">全国计算机等级考试（NCRE）</p>
             </div>
           </div>
           <button 
+            type="button"
             onClick={() => setIsOpen(false)}
-            className="p-1.5 text-slate-400 hover:text-slate-600 rounded-md lg:hidden"
+            className="p-2 -mr-1 text-slate-400 hover:text-slate-700 active:bg-slate-100 rounded-lg lg:hidden min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer"
+            aria-label="关闭侧边导航"
           >
             <X className="w-5 h-5" />
           </button>
@@ -116,7 +118,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Search input */}
         <div className="p-3 border-b border-slate-200/80 bg-slate-50 shrink-0">
           <div className="relative">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input 
               type="text"
               value={searchQuery}
@@ -128,24 +130,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   setIsOpen(false);
                 }
               }}
-              placeholder="搜索考点、SQL、口诀、图元 (Enter直达)..."
-              className="w-full pl-9 pr-8 py-1.5 bg-white border border-slate-200 rounded-lg text-xs placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
+              placeholder="搜索考点、SQL、口诀、图元..."
+              className="w-full pl-9 pr-9 py-2 min-h-[40px] bg-white border border-slate-200 rounded-lg text-xs placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
             />
             {searchQuery && (
               <button
+                type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-1 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 active:bg-slate-100 p-2 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-md cursor-pointer"
+                aria-label="清空搜索输入"
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="w-4 h-4" />
               </button>
             )}
           </div>
           {isSearching && (
-            <div className="flex items-center justify-between mt-1.5 px-0.5 text-[11px] text-slate-500">
+            <div className="flex items-center justify-between mt-2 px-1 text-[11px] text-slate-500">
               <span>找到 <strong>{searchResults.length}</strong> 个精确考点</span>
               <button 
+                type="button"
                 onClick={() => setSearchQuery('')}
-                className="text-blue-600 hover:underline"
+                className="text-blue-600 hover:underline cursor-pointer py-1"
               >
                 清空搜索
               </button>
@@ -172,7 +177,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           onSelect(item.topic.id, item.subTopic.id, searchQuery.trim());
                           setIsOpen(false);
                         }}
-                        className="w-full p-2.5 bg-white hover:bg-blue-50/80 border border-slate-200 hover:border-blue-300 rounded-xl text-left transition-all group shadow-2xs cursor-pointer"
+                        className="w-full min-h-[44px] p-2.5 bg-white hover:bg-blue-50/80 active:bg-blue-100/70 border border-slate-200 hover:border-blue-300 rounded-xl text-left transition-all group shadow-2xs cursor-pointer flex flex-col justify-center"
                       >
                         <div className="flex items-center justify-between gap-1.5 mb-1 pointer-events-none">
                           <span className="text-[10px] font-medium px-1.5 py-0.2 rounded-md bg-slate-100 text-slate-600 group-hover:bg-blue-100 group-hover:text-blue-700 truncate max-w-[170px]">
@@ -209,19 +214,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       return (
                         <button
                           key={topic.id}
+                          type="button"
                           onClick={() => {
                             onSelect(topic.id);
                             setIsOpen(false);
                           }}
                           className={`
-                            w-full flex items-center gap-2 p-2 rounded-lg text-left transition text-xs
-                            ${isSelected ? 'bg-blue-600 text-white font-medium' : 'text-slate-700 hover:bg-slate-200/60'}
+                            w-full min-h-[44px] flex items-center gap-2 px-2.5 py-2 rounded-lg text-left transition text-xs cursor-pointer
+                            ${isSelected ? 'bg-blue-600 text-white font-medium' : 'text-slate-700 hover:bg-slate-200/60 active:bg-slate-200'}
                           `}
                         >
-                          <div className={`p-1 rounded shrink-0 ${isSelected ? 'bg-blue-700 text-white' : 'bg-slate-200 text-slate-600'}`}>
+                          <div className={`p-1.5 rounded shrink-0 ${isSelected ? 'bg-blue-700 text-white' : 'bg-slate-200 text-slate-600'}`}>
                             <IconRenderer name={topic.icon} className="w-3.5 h-3.5" />
                           </div>
-                          <span className="truncate flex-1">{topic.title}</span>
+                          <span className="truncate flex-1 font-medium">{topic.title}</span>
                           <span className="text-[10px] opacity-75 shrink-0">{topic.subTopics.length}考点</span>
                         </button>
                       );
@@ -247,20 +253,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 return (
                   <button
                     key={topic.id}
+                    type="button"
                     onClick={() => {
                       onSelect(topic.id);
                       setIsOpen(false);
                     }}
                     className={`
-                      w-full flex items-start gap-2.5 p-2.5 rounded-xl text-left transition-all relative
+                      w-full min-h-[48px] flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left transition-all relative cursor-pointer
                       ${isSpecialFillIn && !isSelected ? 'border border-amber-300/80 bg-gradient-to-r from-amber-50 to-orange-50/50 hover:bg-amber-100/60' : ''}
                       ${isSelected 
                         ? 'bg-blue-600 text-white shadow-sm font-medium' 
-                        : !isSpecialFillIn ? 'text-slate-700 hover:bg-slate-200/70 hover:text-slate-900' : ''}
+                        : !isSpecialFillIn ? 'text-slate-700 hover:bg-slate-200/70 active:bg-slate-200 hover:text-slate-900' : ''}
                     `}
                   >
                     <div className={`
-                      mt-0.5 p-1.5 rounded-lg shrink-0
+                      p-1.5 rounded-lg shrink-0
                       ${isSelected ? 'bg-blue-700/50 text-white' : isSpecialFillIn ? 'bg-amber-200/70 text-amber-800' : 'bg-slate-200/60 text-slate-600'}
                     `}>
                       <IconRenderer name={topic.icon} className="w-4 h-4" />

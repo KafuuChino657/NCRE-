@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Topic, SubTopic } from '../types';
-import { Menu, Eye, EyeOff, Sparkles, CheckCircle2, Bookmark, HelpCircle, ArrowUp, Target } from 'lucide-react';
+import { Menu, Eye, EyeOff, Sparkles, CheckCircle2, Bookmark, HelpCircle, ArrowUp, Target, Search, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { MarkdownRenderer, highlightSearchMatch } from './MarkdownRenderer';
 import { IconRenderer } from './IconRenderer';
@@ -9,7 +9,9 @@ interface ContentAreaProps {
   topic: Topic | undefined;
   jumpTarget: { subTopicId: string; query?: string; timestamp: number } | null;
   searchQuery?: string;
+  setSearchQuery?: (query: string) => void;
   onOpenSidebar: () => void;
+  onOpenSidebarWithSearch?: () => void;
 }
 
 // Individual interactive keyword card for Fill-in-the-Blank memory practice
@@ -28,7 +30,7 @@ const ClozeKeywordPill: React.FC<{
       <span 
         data-search-highlight={isMatch ? "true" : undefined}
         data-keyword-pill="true"
-        className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold transition-all duration-300 shadow-2xs ${
+        className={`inline-flex items-center min-h-[32px] sm:min-h-0 px-2.5 py-1 sm:px-2 sm:py-0.5 rounded-md text-xs font-semibold transition-all duration-300 shadow-2xs ${
           isMatch && isHighlighted
             ? 'bg-amber-300 text-slate-950 font-bold ring-4 ring-amber-400/90 shadow-md scale-105 z-10'
             : isMatch
@@ -43,27 +45,28 @@ const ClozeKeywordPill: React.FC<{
 
   return (
     <button
+      type="button"
       onClick={onToggle}
       data-search-highlight={isMatch ? "true" : undefined}
       data-keyword-pill="true"
-      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-mono font-medium transition-all duration-300 cursor-pointer shadow-2xs ${
+      className={`inline-flex items-center gap-1.5 min-h-[44px] sm:min-h-[36px] px-3 py-1.5 sm:px-2.5 sm:py-1 rounded-lg text-xs font-mono font-medium transition-all duration-300 cursor-pointer shadow-2xs select-none active:scale-98 ${
         isMatch && isHighlighted
           ? 'bg-amber-300 text-slate-950 font-bold ring-4 ring-amber-400/90 shadow-md scale-105 z-10'
           : isRevealed 
-          ? 'bg-emerald-100 text-emerald-950 border border-emerald-300 ring-1 ring-emerald-400/30' 
-          : 'bg-slate-200 text-slate-600 hover:bg-slate-300 border border-slate-300'
+          ? 'bg-emerald-100 text-emerald-950 border border-emerald-300 ring-1 ring-emerald-400/30 active:bg-emerald-200' 
+          : 'bg-slate-200 text-slate-700 hover:bg-slate-300 active:bg-slate-400 border border-slate-300'
       }`}
       title={isRevealed ? '点击遮盖' : '点击显示填空答案'}
     >
       {isRevealed || (isMatch && isHighlighted) ? (
         <>
-          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
           <span className="font-bold">{keyword}</span>
         </>
       ) : (
         <>
-          <HelpCircle className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-          <span className="text-slate-500">点击揭晓填空</span>
+          <HelpCircle className="w-4 h-4 text-slate-500 shrink-0" />
+          <span className="text-slate-600 font-sans">点击揭晓填空</span>
         </>
       )}
     </button>
@@ -73,12 +76,15 @@ const ClozeKeywordPill: React.FC<{
 export const ContentArea: React.FC<ContentAreaProps> = ({ 
   topic, 
   jumpTarget, 
-  searchQuery, 
-  onOpenSidebar 
+  searchQuery = '', 
+  setSearchQuery,
+  onOpenSidebar,
+  onOpenSidebarWithSearch 
 }) => {
   const [isClozeMode, setIsClozeMode] = useState(false);
   const [revealedKeywords, setRevealedKeywords] = useState<Record<string, boolean>>({});
   const [activeHighlightedId, setActiveHighlightedId] = useState<string | null>(null);
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
 
   // Search jump target and 5-second countdown highlight state
   const [highlightTarget, setHighlightTarget] = useState<{
@@ -251,8 +257,8 @@ export const ContentArea: React.FC<ContentAreaProps> = ({
 
   if (!topic) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-white lg:ml-80 min-h-screen">
-        <p className="text-slate-500">请选择左侧复习考点模块</p>
+      <div className="flex-1 flex items-center justify-center bg-white lg:ml-80 min-h-screen p-4">
+        <p className="text-slate-500 text-sm">请选择左侧复习考点模块</p>
       </div>
     );
   }
@@ -277,28 +283,31 @@ export const ContentArea: React.FC<ContentAreaProps> = ({
   };
 
   return (
-    <div className="flex-1 lg:ml-80 min-h-screen bg-slate-50/50 flex flex-col">
+    <div className="flex-1 w-full lg:ml-80 min-h-screen bg-slate-50/50 flex flex-col min-w-0">
       {/* Sticky Header */}
-      <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 h-16 flex items-center justify-between lg:px-8 shadow-2xs">
-        <div className="flex items-center gap-3 min-w-0">
+      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 px-3 sm:px-4 lg:px-8 h-14 sm:h-16 flex items-center justify-between shadow-2xs">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 mr-2">
+          {/* Hamburger Menu on mobile/tablet */}
           <button 
+            type="button"
             onClick={onOpenSidebar}
-            className="p-2 -ml-2 text-slate-500 hover:bg-slate-100 rounded-lg lg:hidden"
-            aria-label="打开侧边栏菜单"
+            className="p-2 -ml-1 text-slate-600 hover:text-slate-900 active:bg-slate-100 rounded-lg lg:hidden min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer shrink-0"
+            aria-label="打开考点目录与搜索"
           >
             <Menu className="w-5 h-5" />
           </button>
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hidden sm:block">
+
+          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+            <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hidden sm:flex shrink-0">
               <IconRenderer name={topic.icon} className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight truncate">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <h2 className="text-sm sm:text-base lg:text-lg font-bold text-slate-900 tracking-tight truncate">
                   {topic.title}
                 </h2>
                 {topic.badge && (
-                  <span className="hidden md:inline-block text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
+                  <span className="hidden sm:inline-block text-[10px] sm:text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 shrink-0">
                     {topic.badge}
                   </span>
                 )}
@@ -307,19 +316,38 @@ export const ContentArea: React.FC<ContentAreaProps> = ({
           </div>
         </div>
 
-        {/* Action Controls: Cloze Mode Toggle */}
-        <div className="flex items-center gap-2">
+        {/* Action Controls: Mobile Search + Cloze Mode Toggle */}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          {/* Quick Search trigger button on mobile/tablet */}
+          <button
+            type="button"
+            onClick={() => {
+              if (onOpenSidebarWithSearch) {
+                onOpenSidebarWithSearch();
+              } else {
+                onOpenSidebar();
+              }
+            }}
+            className="lg:hidden flex items-center justify-center p-2 text-slate-600 hover:text-blue-600 active:bg-blue-50 rounded-lg min-h-[44px] min-w-[44px] cursor-pointer"
+            aria-label="搜索考点"
+            title="搜索考点"
+          >
+            <Search className="w-4 h-4" />
+          </button>
+
           {isClozeMode && (
-            <div className="hidden sm:flex items-center gap-1.5">
+            <div className="hidden sm:flex items-center gap-1">
               <button
+                type="button"
                 onClick={() => handleRevealAll(true)}
-                className="text-xs px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md font-medium transition"
+                className="text-xs px-2.5 py-1.5 min-h-[36px] bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 rounded-md font-medium transition cursor-pointer"
               >
                 全显
               </button>
               <button
+                type="button"
                 onClick={() => handleRevealAll(false)}
-                className="text-xs px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md font-medium transition"
+                className="text-xs px-2.5 py-1.5 min-h-[36px] bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 rounded-md font-medium transition cursor-pointer"
               >
                 全遮
               </button>
@@ -327,26 +355,28 @@ export const ContentArea: React.FC<ContentAreaProps> = ({
           )}
 
           <button
+            type="button"
             onClick={() => setIsClozeMode(!isClozeMode)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 shadow-2xs ${
+            className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 shadow-2xs min-h-[40px] sm:min-h-[36px] cursor-pointer active:scale-98 ${
               isClozeMode 
                 ? 'bg-amber-500 text-white shadow-amber-500/20' 
                 : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
             }`}
           >
-            {isClozeMode ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            <span>{isClozeMode ? '挖空模式 ON' : '填空自测模式'}</span>
+            {isClozeMode ? <EyeOff className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
+            <span className="hidden xs:inline">{isClozeMode ? '挖空模式' : '填空自测'}</span>
+            <span className="xs:hidden">{isClozeMode ? '已挖空' : '自测'}</span>
           </button>
         </div>
       </header>
 
       {/* Main Container */}
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-6 sm:px-6 lg:px-8 space-y-8">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 space-y-6 sm:space-y-8 min-w-0">
         {/* Module Description Banner */}
         {topic.description && (
-          <div className="bg-gradient-to-r from-blue-500/10 via-indigo-500/5 to-transparent border border-blue-200/70 rounded-xl p-4 flex items-start gap-3">
-            <Sparkles className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
-            <div className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+          <div className="bg-gradient-to-r from-blue-500/10 via-indigo-500/5 to-transparent border border-blue-200/70 rounded-xl p-3 sm:p-4 flex items-start gap-2.5 sm:gap-3">
+            <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 mt-0.5 shrink-0" />
+            <div className="text-xs sm:text-sm text-slate-700 leading-relaxed break-words">
               <span className="font-semibold text-slate-900">模块提要：</span>
               {topic.description}
             </div>
@@ -354,16 +384,17 @@ export const ContentArea: React.FC<ContentAreaProps> = ({
         )}
 
         {/* Sub-topics Quick Jump Pills */}
-        <div className="flex flex-wrap items-center gap-2 pb-2">
-          <span className="text-xs font-semibold text-slate-400 mr-1">本节考点直达:</span>
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 pb-1 sm:pb-2 overflow-x-auto -webkit-overflow-scrolling-touch">
+          <span className="text-[11px] sm:text-xs font-semibold text-slate-400 mr-1 shrink-0">考点直达:</span>
           {topic.subTopics.map((sub, idx) => (
             <button
               key={sub.id}
+              type="button"
               onClick={() => handleJumpToSubtopic(sub.id)}
-              className={`text-xs px-2.5 py-1 rounded-lg transition-all whitespace-nowrap cursor-pointer border ${
+              className={`text-xs px-3 py-1.5 sm:px-2.5 sm:py-1 rounded-lg transition-all whitespace-nowrap cursor-pointer border min-h-[36px] sm:min-h-0 flex items-center justify-center ${
                 activeHighlightedId === sub.id
                   ? 'bg-blue-600 text-white border-blue-600 font-bold shadow-xs'
-                  : 'bg-white hover:bg-blue-50 text-slate-600 hover:text-blue-700 border-slate-200'
+                  : 'bg-white hover:bg-blue-50 text-slate-600 hover:text-blue-700 border-slate-200 active:bg-blue-100'
               }`}
             >
               {sub.title.split(' ')[0] || `考点${idx + 1}`}
@@ -371,26 +402,27 @@ export const ContentArea: React.FC<ContentAreaProps> = ({
           ))}
         </div>
 
-        {/* Cloze Mode Alert Helper */}
+        {/* Cloze Mode Alert Helper on Mobile / Tablet */}
         {isClozeMode && (
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-3.5 flex items-center justify-between text-xs text-amber-900">
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs text-amber-900">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
-              <span>
-                <strong>已启用填空题挖空测试！</strong> 核心考点与关键字已被遮盖，先在大脑中回忆答案，再点击卡片揭晓核对。
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping shrink-0" />
+              <span className="leading-snug">
+                <strong>已启用填空题挖空测试！</strong> 核心考点已遮盖，点击卡片直接揭晓核对。
               </span>
             </div>
-            <div className="flex items-center gap-1 shrink-0 ml-2">
+            <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
               <button 
+                type="button"
                 onClick={() => handleRevealAll(true)} 
-                className="underline hover:text-amber-950 font-bold"
+                className="px-2 py-1 rounded bg-amber-100 hover:bg-amber-200 text-amber-950 font-bold min-h-[32px] cursor-pointer"
               >
                 一键全揭晓
               </button>
-              <span>/</span>
               <button 
+                type="button"
                 onClick={() => handleRevealAll(false)} 
-                className="underline hover:text-amber-950 font-bold"
+                className="px-2 py-1 rounded bg-amber-100 hover:bg-amber-200 text-amber-950 font-bold min-h-[32px] cursor-pointer"
               >
                 一键全遮盖
               </button>
@@ -418,34 +450,34 @@ export const ContentArea: React.FC<ContentAreaProps> = ({
               <section 
                 key={subTopic.id || idx}
                 id={subTopic.id}
-                className={`bg-white rounded-2xl p-5 sm:p-7 border scroll-mt-24 transition-all duration-500 relative ${
+                className={`bg-white rounded-2xl p-4 sm:p-6 lg:p-7 border scroll-mt-20 sm:scroll-mt-24 transition-all duration-500 relative max-w-full overflow-hidden ${
                   isIntenseHighlight
                     ? 'border-amber-400 ring-4 ring-amber-400/40 shadow-xl bg-amber-50/10'
                     : isTargeted 
                     ? 'border-blue-500 ring-4 ring-blue-500/20 shadow-lg bg-blue-50/10' 
-                    : 'border-slate-200/90 shadow-sm hover:border-slate-300'
+                    : 'border-slate-200/90 shadow-xs hover:border-slate-300'
                 }`}
               >
                 {/* Subtopic Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 mb-4 border-b border-slate-100">
-                  <h3 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2.5 flex-wrap">
-                    <span className={`w-1.5 h-5 rounded-full ${
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 sm:pb-4 mb-3 sm:mb-4 border-b border-slate-100">
+                  <h3 className="text-sm sm:text-base lg:text-lg font-bold text-slate-900 flex items-center gap-2 flex-wrap min-w-0">
+                    <span className={`w-1.5 h-4 sm:h-5 rounded-full shrink-0 ${
                       isIntenseHighlight ? 'bg-amber-500 animate-pulse' : isTargeted ? 'bg-blue-600 animate-pulse' : 'bg-blue-600'
                     }`} />
-                    <span>{highlightSearchMatch(subTopic.title, activeQuery, isIntenseHighlight)}</span>
+                    <span className="break-words min-w-0">{highlightSearchMatch(subTopic.title, activeQuery, isIntenseHighlight)}</span>
                     {isIntenseHighlight && (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-500 text-slate-950 animate-bounce shadow-xs">
-                        <Target className="w-3 h-3" /> 命中搜索词 (高亮 {countdown}s)
+                      <span className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-500 text-slate-950 animate-bounce shadow-xs shrink-0">
+                        <Target className="w-3 h-3" /> 命中搜索词 ({countdown}s)
                       </span>
                     )}
                     {!isIntenseHighlight && isTargeted && (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-600 text-white animate-bounce">
-                        <Target className="w-3 h-3" /> 已定位到该考点
+                      <span className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-600 text-white animate-bounce shrink-0">
+                        <Target className="w-3 h-3" /> 已定位
                       </span>
                     )}
                   </h3>
                   {subTopic.tag && (
-                    <span className="self-start sm:self-auto text-xs px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 font-medium border border-slate-200">
+                    <span className="self-start sm:self-auto text-[11px] sm:text-xs px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 font-medium border border-slate-200 shrink-0">
                       {subTopic.tag}
                     </span>
                   )}
@@ -453,12 +485,12 @@ export const ContentArea: React.FC<ContentAreaProps> = ({
 
                 {/* Subtopic Keywords Pill Box */}
                 {subTopic.highlightedKeywords && subTopic.highlightedKeywords.length > 0 && (
-                  <div className="mb-6 p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/70">
-                    <div className="flex items-center gap-2 mb-2 text-xs font-semibold text-slate-600">
-                      <Bookmark className="w-3.5 h-3.5 text-blue-500" />
-                      <span>{isClozeMode ? '本节核心填空词自测（点击翻看）：' : '本节核心填空词与秒杀关键字：'}</span>
+                  <div className="mb-4 sm:mb-6 p-3 sm:p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/70">
+                    <div className="flex items-center gap-1.5 sm:gap-2 mb-2 text-xs font-semibold text-slate-600">
+                      <Bookmark className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                      <span className="truncate">{isClozeMode ? '核心填空词自测（点击翻看）：' : '核心填空词与秒杀关键字：'}</span>
                     </div>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-1.5 sm:gap-2">
                       {subTopic.highlightedKeywords.map((kw, kwIdx) => {
                         const uniqueKey = `${subTopic.id}-${kw}`;
                         const isRevealed = !!revealedKeywords[uniqueKey];
@@ -497,7 +529,7 @@ export const ContentArea: React.FC<ContentAreaProps> = ({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 20, scale: 0.95 }}
               transition={{ duration: 0.2 }}
-              className="fixed bottom-6 right-6 z-50 flex flex-col gap-2 p-3.5 bg-slate-900/95 text-white rounded-2xl shadow-2xl border border-amber-400/40 backdrop-blur-md max-w-xs sm:max-w-sm"
+              className="fixed bottom-4 sm:bottom-6 right-3 sm:right-6 left-3 sm:left-auto z-50 flex flex-col gap-2 p-3 sm:p-3.5 bg-slate-900/95 text-white rounded-2xl shadow-2xl border border-amber-400/40 backdrop-blur-md max-w-none sm:max-w-sm"
             >
               <div className="flex items-center justify-between gap-3 text-xs">
                 <div className="flex items-center gap-2">
@@ -511,9 +543,9 @@ export const ContentArea: React.FC<ContentAreaProps> = ({
                   高亮中 {countdown}s
                 </span>
               </div>
-              <div className="text-xs text-slate-300 flex items-center gap-1.5">
+              <div className="text-xs text-slate-300 flex items-center gap-1.5 min-w-0">
                 <span className="text-slate-400 shrink-0">搜索内容:</span>
-                <span className="font-bold text-amber-300 bg-slate-800 px-2 py-0.5 rounded border border-slate-700 truncate">
+                <span className="font-bold text-amber-300 bg-slate-800 px-2 py-0.5 rounded border border-slate-700 truncate min-w-0">
                   {highlightTarget.query}
                 </span>
               </div>
@@ -529,12 +561,13 @@ export const ContentArea: React.FC<ContentAreaProps> = ({
         </AnimatePresence>
 
         {/* Back to top button */}
-        <div className="flex justify-center pt-4 pb-12">
+        <div className="flex justify-center pt-2 sm:pt-4 pb-10 sm:pb-12">
           <button
+            type="button"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 rounded-full border border-slate-200 text-xs font-medium shadow-xs transition cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2.5 min-h-[44px] bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-700 hover:text-slate-900 rounded-full border border-slate-200 text-xs font-semibold shadow-xs transition cursor-pointer"
           >
-            <ArrowUp className="w-3.5 h-3.5" />
+            <ArrowUp className="w-4 h-4 text-blue-600" />
             <span>返回页面顶部</span>
           </button>
         </div>
